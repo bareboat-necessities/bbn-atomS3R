@@ -30,9 +30,12 @@ void read_and_processIMU_data() {
   float pitch, roll, yaw;
   Quaternion quaternion;
 
-  mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
-                         accel.x, accel.y, accel.z, mag.x, mag.y, mag.z,
-                         &pitch, &roll, &yaw, delta_t);
+  //mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
+  //                       accel.x, accel.y, accel.z, mag.x, mag.y, mag.z,
+  //                       &pitch, &roll, &yaw, delta_t);
+  mahony_AHRS_update(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
+                     accel.x, accel.y, accel.z,
+                     &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
   samples++;
@@ -103,5 +106,5 @@ void setup() {
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(3000);
+  delayMicroseconds(5000);
 }
