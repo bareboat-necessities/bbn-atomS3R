@@ -147,13 +147,13 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   // accelerometer normalisation)
   if (!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f))) {
     // Normalise accelerometer measurement
-    recipNorm = sqrt(ax * ax + ay * ay + az * az);
+    recipNorm = invSqrt(ax * ax + ay * ay + az * az);
     ax *= recipNorm;
     ay *= recipNorm;
     az *= recipNorm;
 
     // Normalise magnetometer measurement
-    recipNorm = sqrt(mx * mx + my * my + mz * mz);
+    recipNorm = invSqrt(mx * mx + my * my + mz * mz);
     mx *= recipNorm;
     my *= recipNorm;
     mz *= recipNorm;
@@ -226,7 +226,7 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   m->q3 += (qa * gz + qb * gy - qc * gx);
 
   // Normalise quaternion
-  recipNorm = sqrt(m->q0 * m->q0 + m->q1 * m->q1 + m->q2 * m->q2 + m->q3 * m->q3);
+  recipNorm = invSqrt(m->q0 * m->q0 + m->q1 * m->q1 + m->q2 * m->q2 + m->q3 * m->q3);
   m->q0 *= recipNorm;
   m->q1 *= recipNorm;
   m->q2 *= recipNorm;
