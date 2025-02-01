@@ -139,7 +139,7 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   // Use IMU algorithm if magnetometer measurement invalid (avoids NaN in
   // magnetometer normalisation)
   if ((mx == 0.0f) && (my == 0.0f) && (mz == 0.0f)) {
-    mahony_AHRS_update(m, gx, gy, gz, ax, ay, az, pitch, roll, yaw);
+    mahony_AHRS_update(m, gx, gy, gz, ax, ay, az, pitch, roll, yaw, delta_t_sec);
     return;
   }
 
