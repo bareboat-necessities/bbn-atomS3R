@@ -175,7 +175,7 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
                  mz * (q1q3 + q0q2));
     hy = 2.0f * (mx * (q1q2 + q0q3) + my * (0.5f - q1q1 - q3q3) +
                  mz * (q2q3 - q0q1));
-    bx = sqrt(hx * hx + hy * hy);
+    bx = sqrtf(hx * hx + hy * hy);
     bz = 2.0f * (mx * (q1q3 - q0q2) + my * (q2q3 + q0q1) +
                  mz * (0.5f - q1q1 - q2q2));
 
@@ -232,11 +232,17 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   m->q2 *= recipNorm;
   m->q3 *= recipNorm;
 
-  *pitch = asin(-2 * m->q1 * m->q3 + 2 * m->q0 * m->q2);  // pitch
-  *roll  = atan2(2 * m->q2 * m->q3 + 2 * m->q0 * m->q1,
+  *roll = atan2f(m->q0 * m->q1 + m->q2 * m->q3, 0.5f - m->q1 * m->q1 - m->q2 * m->q2);
+  *pitch = asinf(-2.0f * (m->q1 * m->q3 - m->q0 * m->q2));
+  *yaw = atan2f(m->q1 * m->q2 + m->q0 * m->q3, 0.5f - m->q2 * m->q2 - m->q3 * m->q3);
+
+  /*
+    pitch = asinf(-2 * m->q1 * m->q3 + 2 * m->q0 * m->q2);  // pitch
+    roll  = atan2f(2 * m->q2 * m->q3 + 2 * m->q0 * m->q1,
                  -2 * m->q1 * m->q1 - 2 * m->q2 * m->q2 + 1);  // roll
-  *yaw   = atan2(2 * (m->q1 * m->q2 + m->q0 * m->q3),
+    yaw   = atan2f(2 * (m->q1 * m->q2 + m->q0 * m->q3),
                  m->q0 * m->q0 + m->q1 * m->q1 - m->q2 * m->q2 - m->q3 * m->q3);  // yaw
+  */
 
   *pitch *= RAD_TO_DEG;
   *yaw *= RAD_TO_DEG;
