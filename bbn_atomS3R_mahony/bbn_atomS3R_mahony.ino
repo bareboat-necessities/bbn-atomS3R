@@ -27,7 +27,7 @@ void read_and_processIMU_data() {
   float delta_t = (now - last_update) / 1000000.0;  // time step sec
   last_update = now;
 
-  float pitch, roll, yaw;
+  float pitch = .0f, roll = .0f, yaw = .0f;
   Quaternion quaternion;
 
   //mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
@@ -106,5 +106,5 @@ void setup() {
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(5000);
+  delayMicroseconds(4000);
 }
