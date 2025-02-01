@@ -103,7 +103,7 @@ void setup() {
   last_update = micros();
 
   float twoKp = (2.0f * 1.0f);
-  float twoKi = (2.0f * 0.0f);
+  float twoKi = (2.0f * 0.001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 }
 
