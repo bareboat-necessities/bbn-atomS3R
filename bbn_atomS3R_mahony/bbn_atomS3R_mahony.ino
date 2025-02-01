@@ -30,13 +30,17 @@ void read_and_processIMU_data() {
   float pitch = .0f, roll = .0f, yaw = .0f;
   Quaternion quaternion;
 
-  mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
-                         accel.x, accel.y, accel.z, mag.x, mag.y, mag.z,
-                         &pitch, &roll, &yaw, delta_t);
-  //mahony_AHRS_update(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
-  //                   accel.x, accel.y, accel.z,
-  //                   &pitch, &roll, &yaw, delta_t);
+  //mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
+  //                       accel.x, accel.y, accel.z, mag.x, mag.y, mag.z,
+  //                       &pitch, &roll, &yaw, delta_t);
+  mahony_AHRS_update(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
+                     accel.x, accel.y, accel.z,
+                     &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
+
+  if (yaw < 0)
+    yaw += 360.0;
+  else if (yaw >= 360) yaw -= 360.0;
 
   samples++;
   if (samples >= 50) {
@@ -50,9 +54,9 @@ void read_and_processIMU_data() {
     Serial.printf(", m.x:%.4f", mag.x);
     Serial.printf(",m.y:%.4f", mag.y);
     Serial.printf(",m.z:%.4f", mag.z);
-    Serial.printf(", pitch:%.4f", pitch);
+    Serial.printf(", yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
-    Serial.printf(",yaw:%.4f", yaw);
+    Serial.printf(",pitch:%.4f", pitch);
     Serial.println();
   }
 }
@@ -99,12 +103,12 @@ void setup() {
   last_update = micros();
 
   float twoKp = (2.0f * 1.0f);
-  float twoKi = (2.0f * 0.0001f);
+  float twoKi = (2.0f * 0.0f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 }
 
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(4000);
+  delayMicroseconds(3000);
 }
