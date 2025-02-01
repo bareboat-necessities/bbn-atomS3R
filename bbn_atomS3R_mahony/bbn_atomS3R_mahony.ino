@@ -47,6 +47,9 @@ void read_and_processIMU_data() {
     Serial.printf(", m.x:%.4f", mag.x);
     Serial.printf(",m.y:%.4f", mag.y);
     Serial.printf(",m.z:%.4f", mag.z);
+    Serial.printf(", pitch:%.4f", pitch);
+    Serial.printf(",roll:%.4f", roll);
+    Serial.printf(",yaw:%.4f", yaw);
     Serial.println();
   }
 }
