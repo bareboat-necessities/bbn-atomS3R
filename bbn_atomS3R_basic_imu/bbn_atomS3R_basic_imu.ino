@@ -10,13 +10,13 @@ int samples = 0;
 
 void read_and_processIMU_data() {
   m5::imu_3d_t accel;
-  M5.Imu.getAccelData(&accel.x, &accel.y, &accel.z);
+  M5.Imu.getAccel(&accel.x, &accel.y, &accel.z);
 
   m5::imu_3d_t gyro;
-  M5.Imu.getGyroData(&gyro.x, &gyro.y, &gyro.z);
+  M5.Imu.getGyro(&gyro.x, &gyro.y, &gyro.z);
 
   m5::imu_3d_t mag;
-  M5.Imu.getGyroMag(&mag.x, &mag.y, &mag.z);
+  M5.Imu.getMag(&mag.x, &mag.y, &mag.z);
 
   samples++;
   if (samples >= 50) {
