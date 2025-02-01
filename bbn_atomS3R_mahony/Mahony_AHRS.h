@@ -53,7 +53,6 @@ void mahony_AHRS_update(Mahony_AHRS_Vars* m,
   float recipNorm;
   float halfvx, halfvy, halfvz;
   float halfex, halfey, halfez;
-  float qa, qb, qc;
 
   // Compute feedback only if accelerometer measurement valid (avoids NaN in
   // accelerometer normalisation)
@@ -95,16 +94,17 @@ void mahony_AHRS_update(Mahony_AHRS_Vars* m,
   }
 
   // Integrate rate of change of quaternion
-  gx *= (0.5f * delta_t_sec);  // pre-multiply common factors
-  gy *= (0.5f * delta_t_sec);
-  gz *= (0.5f * delta_t_sec);
-  qa = m->q0;
-  qb = m->q1;
-  qc = m->q2;
-  m->q0 += (-qb * gx - qc * gy - m->q3 * gz);
-  m->q1 += (qa * gx + qc * gz - m->q3 * gy);
-  m->q2 += (qa * gy - qb * gz + m->q3 * gx);
-  m->q3 += (qa * gz + qb * gy - qc * gx);
+  float half_dt = (0.5f * delta_t_sec);  
+
+  float q_0, q_1, q_2, q_3;
+  q_0 = m->q0;
+  q_1 = m->q1;
+  q_2 = m->q2;
+  q_3 = m->q3;
+  m->q0 += (-q_1 * gx - q_2 * gy - q_3 * gz) * half_dt;
+  m->q1 += (q_0 * gx + q_2 * gz - q_3 * gy) * half_dt;
+  m->q2 += (q_0 * gy - q_1 * gz + q_3 * gx) * half_dt;
+  m->q3 += (q_0 * gz + q_1 * gy - q_2 * gx) * half_dt;
 
   // Normalise quaternion
   recipNorm = invSqrt(m->q0 * m->q0 + m->q1 * m->q1 + m->q2 * m->q2 + m->q3 * m->q3);
