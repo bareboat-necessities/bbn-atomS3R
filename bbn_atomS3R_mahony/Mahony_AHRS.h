@@ -131,7 +131,7 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
                             float delta_t_sec) {
   float recipNorm;
   float q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
-  float hx, hy, bx, bz;
+  float hx, hy, hz, bx, bz;
   float halfvx, halfvy, halfvz, halfwx, halfwy, halfwz;
   float halfex, halfey, halfez;
   float qa, qb, qc;
@@ -175,14 +175,15 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
                  mz * (q1q3 + q0q2));
     hy = 2.0f * (mx * (q1q2 + q0q3) + my * (0.5f - q1q1 - q3q3) +
                  mz * (q2q3 - q0q1));
-    bx = sqrtf(hx * hx + hy * hy);
-    bz = 2.0f * (mx * (q1q3 - q0q2) + my * (q2q3 + q0q1) +
+    hz = 2.0f * (mx * (q1q3 - q0q2) + my * (q2q3 + q0q1) +
                  mz * (0.5f - q1q1 - q2q2));
+    bx = sqrtf(hx * hx + hy * hy);
+    bz = hz;
 
     // Estimated direction of gravity and magnetic field
     halfvx = q1q3 - q0q2;
     halfvy = q0q1 + q2q3;
-    halfvz = q0q0 - 0.5f + q3q3;
+    halfvz = 0.5f * (q0q0 - q1q1 - q2q2 + q3q3);
     halfwx = bx * (0.5f - q2q2 - q3q3) + bz * (q1q3 - q0q2);
     halfwy = bx * (q1q2 - q0q3) + bz * (q0q1 + q2q3);
     halfwz = bx * (q0q2 + q1q3) + bz * (0.5f - q1q1 - q2q2);
@@ -232,17 +233,17 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   m->q2 *= recipNorm;
   m->q3 *= recipNorm;
 
-  *roll = atan2f(m->q0 * m->q1 + m->q2 * m->q3, 0.5f - m->q1 * m->q1 - m->q2 * m->q2);
-  *pitch = asinf(-2.0f * (m->q1 * m->q3 - m->q0 * m->q2));
-  *yaw = atan2f(m->q1 * m->q2 + m->q0 * m->q3, 0.5f - m->q2 * m->q2 - m->q3 * m->q3);
-
   /*
-    pitch = asinf(-2 * m->q1 * m->q3 + 2 * m->q0 * m->q2);  // pitch
-    roll  = atan2f(2 * m->q2 * m->q3 + 2 * m->q0 * m->q1,
-                 -2 * m->q1 * m->q1 - 2 * m->q2 * m->q2 + 1);  // roll
-    yaw   = atan2f(2 * (m->q1 * m->q2 + m->q0 * m->q3),
-                 m->q0 * m->q0 + m->q1 * m->q1 - m->q2 * m->q2 - m->q3 * m->q3);  // yaw
+    roll = atan2f(m->q0 * m->q1 + m->q2 * m->q3, 0.5f - m->q1 * m->q1 - m->q2 * m->q2);
+    pitch = asinf(-2.0f * (m->q1 * m->q3 - m->q0 * m->q2));
+    yaw = atan2f(m->q1 * m->q2 + m->q0 * m->q3, 0.5f - m->q2 * m->q2 - m->q3 * m->q3);
   */
+
+  *pitch = asinf(-2 * m->q1 * m->q3 + 2 * m->q0 * m->q2);  // pitch
+  *roll  = atan2f(2 * m->q2 * m->q3 + 2 * m->q0 * m->q1,
+                 -2 * m->q1 * m->q1 - 2 * m->q2 * m->q2 + 1);  // roll
+  *yaw   = atan2f(2 * (m->q1 * m->q2 + m->q0 * m->q3),
+                 m->q0 * m->q0 + m->q1 * m->q1 - m->q2 * m->q2 - m->q3 * m->q3);  // yaw
 
   *pitch *= RAD_TO_DEG;
   *yaw *= RAD_TO_DEG;
