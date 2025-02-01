@@ -14,14 +14,9 @@ unsigned long last_update = 0UL, now = 0UL;
 int samples = 0;
 
 void read_and_processIMU_data() {
-  m5::imu_3d_t accel;
-  M5.Imu.getAccel(&accel.x, &accel.y, &accel.z);
 
-  m5::imu_3d_t gyro;
-  M5.Imu.getGyro(&gyro.x, &gyro.y, &gyro.z);
-
-  m5::imu_3d_t mag;
-  M5.Imu.getMag(&mag.x, &mag.y, &mag.z);
+  m5::IMU_Class::imu_data_t data;
+  M5.Imu.getImuData(&data); 
 
   now = micros();
   float delta_t = (now - last_update) / 1000000.0;  // time step sec
@@ -30,12 +25,12 @@ void read_and_processIMU_data() {
   float pitch = .0f, roll = .0f, yaw = .0f;
   Quaternion quaternion;
 
-  //mahony_AHRS_update_mag(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
-  //                       accel.x, accel.y, accel.z, mag.x, mag.y, mag.z,
-  //                       &pitch, &roll, &yaw, delta_t);
-  mahony_AHRS_update(&mahony, gyro.x * DEG_TO_RAD, gyro.y * DEG_TO_RAD, gyro.z * DEG_TO_RAD,
-                     accel.x, accel.y, accel.z,
-                     &pitch, &roll, &yaw, delta_t);
+  mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+                         data.accel.x, data.accel.y, data.accel.z, data.mag.x, data.mag.y, data.mag.z,
+                         &pitch, &roll, &yaw, delta_t);
+  //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+  //                   data.accel.x, data.accel.y, data.accel.z,
+  //                   &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
   if (yaw < 0)
@@ -45,15 +40,15 @@ void read_and_processIMU_data() {
   samples++;
   if (samples >= 50) {
     samples = 0;
-    Serial.printf("a.x:%.4f", accel.x);
-    Serial.printf(",a.y:%.4f", accel.y);
-    Serial.printf(",a.z:%.4f", accel.z);
-    Serial.printf(", g.x:%.4f", gyro.x);
-    Serial.printf(",g.y:%.4f", gyro.y);
-    Serial.printf(",g.z:%.4f", gyro.z);
-    Serial.printf(", m.x:%.4f", mag.x);
-    Serial.printf(",m.y:%.4f", mag.y);
-    Serial.printf(",m.z:%.4f", mag.z);
+    Serial.printf("a.x:%.4f", data.accel.x);
+    Serial.printf(",a.y:%.4f", data.accel.y);
+    Serial.printf(",a.z:%.4f", data.accel.z);
+    Serial.printf(", g.x:%.4f", data.gyro.x);
+    Serial.printf(",g.y:%.4f", data.gyro.y);
+    Serial.printf(",g.z:%.4f", data.gyro.z);
+    Serial.printf(", m.x:%.4f", data.mag.x);
+    Serial.printf(",m.y:%.4f", data.mag.y);
+    Serial.printf(",m.z:%.4f", data.mag.z);
     Serial.printf(", yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
@@ -102,9 +97,11 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 1.0f);
-  float twoKi = (2.0f * 0.001f);
+  float twoKp = (2.0f * 1.5f);
+  float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
+
+  M5.Imu.setCalibration(0, 0, 100);
 }
 
 void loop() {
