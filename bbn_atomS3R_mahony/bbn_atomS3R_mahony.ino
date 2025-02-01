@@ -101,7 +101,7 @@ void setup() {
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
-  M5.Imu.setCalibration(0, 0, 100);
+  M5.Imu.setCalibration(0, 0, 200);
 }
 
 void loop() {
