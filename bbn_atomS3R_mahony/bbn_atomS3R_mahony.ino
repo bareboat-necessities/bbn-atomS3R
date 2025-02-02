@@ -14,17 +14,12 @@ unsigned long last_update = 0UL, now = 0UL;
 int samples = 0;
 
 float getCompassDegree(m5::IMU_Class::imu_data_t data) {
-  float recipNorm = invSqrt(data.mag.x * data.mag.x + data.mag.y * data.mag.y + data.mag.z * data.mag.z);
-  float mx, my, mz;
-  mx = recipNorm * data.mag.x;
-  my = recipNorm * data.mag.y;
-  mz = recipNorm * data.mag.z;
-  float compass = atan2f(mx, my);
+  float compass = atan2f(data.mag.x, data.mag.y);
   if (compass < 0) {
-    compass += 2 * PI;
+    compass += 2 * M_PI;
   }
-  if (compass > 2 * PI) {
-     compass -= 2 * PI;
+  if (compass > 2 * M_PI) {
+     compass -= 2 * M_PI;
   }
   return compass * 180 / M_PI;
 }
@@ -49,8 +44,12 @@ void read_and_processIMU_data() {
                      &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
-  if (yaw < 0) yaw += 360.0;
-  else if (yaw >= 360) yaw -= 360.0;
+  if (yaw < 0) {
+    yaw += 360.0;
+  }
+  else if (yaw >= 360) {
+    yaw -= 360.0;
+  }
 
   samples++;
   if (samples >= 5) {
