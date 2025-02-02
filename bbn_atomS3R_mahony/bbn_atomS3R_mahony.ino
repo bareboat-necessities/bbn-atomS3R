@@ -40,15 +40,15 @@ void read_and_processIMU_data() {
   samples++;
   if (samples >= 50) {
     samples = 0;
-    Serial.printf("a.x:%.4f", data.accel.x);
-    Serial.printf(",a.y:%.4f", data.accel.y);
-    Serial.printf(",a.z:%.4f", data.accel.z);
-    Serial.printf(", g.x:%.4f", data.gyro.x);
-    Serial.printf(",g.y:%.4f", data.gyro.y);
-    Serial.printf(",g.z:%.4f", data.gyro.z);
-    Serial.printf(", m.x:%.4f", data.mag.x);
-    Serial.printf(",m.y:%.4f", data.mag.y);
-    Serial.printf(",m.z:%.4f", data.mag.z);
+    Serial.printf("ax:%.4f", data.accel.x);
+    Serial.printf(",ay:%.4f", data.accel.y);
+    Serial.printf(",az:%.4f", data.accel.z);
+    Serial.printf(", gx:%.4f", data.gyro.x);
+    Serial.printf(",gy:%.4f", data.gyro.y);
+    Serial.printf(",gz:%.4f", data.gyro.z);
+    Serial.printf(", mx:%.4f", data.mag.x);
+    Serial.printf(",my:%.4f", data.mag.y);
+    Serial.printf(",mz:%.4f", data.mag.z);
     Serial.printf(", yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
