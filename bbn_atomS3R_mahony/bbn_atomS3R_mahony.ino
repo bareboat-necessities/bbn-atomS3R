@@ -13,6 +13,22 @@ unsigned long last_update = 0UL, now = 0UL;
 
 int samples = 0;
 
+float getCompassDegree(m5::IMU_Class::imu_data_t data) {
+  float recipNorm = invSqrt(data.mag.x * data.mag.x + data.mag.y * data.mag.y + data.mag.z * data.mag.z);
+  float mx, my, mz;
+  mx = recipNorm * data.mag.x;
+  my = recipNorm * data.mag.y;
+  mz = recipNorm * data.mag.z;
+  float compass = atan2f(mx, my);
+  if (compass < 0) {
+    compass += 2 * PI;
+  }
+  if (compass > 2 * PI) {
+     compass -= 2 * PI;
+  }
+  return compass * 180 / M_PI;
+}
+
 void read_and_processIMU_data() {
 
   m5::IMU_Class::imu_data_t data;
@@ -33,12 +49,11 @@ void read_and_processIMU_data() {
                      &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
-  if (yaw < 0)
-    yaw += 360.0;
+  if (yaw < 0) yaw += 360.0;
   else if (yaw >= 360) yaw -= 360.0;
 
   samples++;
-  if (samples >= 50) {
+  if (samples >= 5) {
     samples = 0;
     Serial.printf("ax:%.4f", data.accel.x);
     Serial.printf(",ay:%.4f", data.accel.y);
@@ -49,7 +64,8 @@ void read_and_processIMU_data() {
     Serial.printf(", mx:%.4f", data.mag.x);
     Serial.printf(",my:%.4f", data.mag.y);
     Serial.printf(",mz:%.4f", data.mag.z);
-    Serial.printf(", yaw:%.4f", yaw);
+    Serial.printf(", head:%.4f", getCompassDegree(data));
+    Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
     Serial.println();
@@ -97,15 +113,15 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 1.5f);
+  float twoKp = (2.0f * 2.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
-  M5.Imu.setCalibration(0, 0, 200);
+  //M5.Imu.setCalibration(50, 50, 200);
 }
 
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(3000);
+  delayMicroseconds(100000);
 }
