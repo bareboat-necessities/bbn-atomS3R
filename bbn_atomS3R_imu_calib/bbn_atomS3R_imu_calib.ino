@@ -4,10 +4,10 @@
 // Strength of the calibration operation;
 // 0: disables calibration.
 // 1 is weakest and 255 is strongest.
-static constexpr const uint8_t calib_value = 64;
+static constexpr const uint8_t calib_value = 150;
 
 // This sample code performs calibration by clicking on a button or screen.
-// After 40 seconds of calibration, the results are stored in NVS.
+// After 90 seconds of calibration, the results are stored in NVS.
 // The saved calibration values are loaded at the next startup.
 //
 // === How to calibration ===
@@ -149,7 +149,7 @@ void updateCalibration(uint32_t c, bool clear = false) {
 }
 
 void startCalibration(void) {
-  updateCalibration(40, true);
+  updateCalibration(90, true);
 }
 
 void setup(void) {
