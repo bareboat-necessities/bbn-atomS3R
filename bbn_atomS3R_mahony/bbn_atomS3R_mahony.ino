@@ -132,7 +132,7 @@ void loop() {
   unsigned long now_ms = millis();
   if (now_ms - last_calib_save > 60000) {
     if (last_calib_save > 0) {
-      M5.Imu.saveOffsetToNVS();
+      //M5.Imu.saveOffsetToNVS();
     }
     last_calib_save = now_ms;    
   }
