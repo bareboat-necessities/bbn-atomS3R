@@ -233,18 +233,16 @@ void mahony_AHRS_update_mag(Mahony_AHRS_Vars* m,
   m->q2 *= recipNorm;
   m->q3 *= recipNorm;
 
-  /*
-    roll = atan2f(m->q0 * m->q1 + m->q2 * m->q3, 0.5f - m->q1 * m->q1 - m->q2 * m->q2);
-    pitch = asinf(-2.0f * (m->q1 * m->q3 - m->q0 * m->q2));
-    yaw = atan2f(m->q1 * m->q2 + m->q0 * m->q3, 0.5f - m->q2 * m->q2 - m->q3 * m->q3);
-  */
-
+  //*roll = atan2f(m->q0 * m->q1 + m->q2 * m->q3, 0.5f - m->q1 * m->q1 - m->q2 * m->q2);
+  //*pitch = asinf(-2.0f * (m->q1 * m->q3 - m->q0 * m->q2));
+  //*yaw = atan2f(m->q1 * m->q2 + m->q0 * m->q3, 0.5f - m->q2 * m->q2 - m->q3 * m->q3);
+  
   *pitch = asinf(-2 * m->q1 * m->q3 + 2 * m->q0 * m->q2);  // pitch
   *roll  = atan2f(2 * m->q2 * m->q3 + 2 * m->q0 * m->q1,
                  -2 * m->q1 * m->q1 - 2 * m->q2 * m->q2 + 1);  // roll
   *yaw   = atan2f(2 * (m->q1 * m->q2 + m->q0 * m->q3),
                  m->q0 * m->q0 + m->q1 * m->q1 - m->q2 * m->q2 - m->q3 * m->q3);  // yaw
-
+  
   *pitch *= RAD_TO_DEG;
   *yaw *= RAD_TO_DEG;
   *roll *= RAD_TO_DEG;
