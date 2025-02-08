@@ -36,12 +36,12 @@ void read_and_processIMU_data() {
   float pitch = .0f, roll = .0f, yaw = .0f;
   Quaternion quaternion;
 
-  //mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
-  //                       data.accel.x, data.accel.y, data.accel.z, data.mag.x, data.mag.y, data.mag.z,
-  //                       &pitch, &roll, &yaw, delta_t);
-  mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
-                     data.accel.x, data.accel.y, data.accel.z,
-                     &pitch, &roll, &yaw, delta_t);
+  mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+                         data.accel.x, data.accel.y, data.accel.z, data.mag.x, data.mag.y, data.mag.z,
+                         &pitch, &roll, &yaw, delta_t);
+  //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+  //                   data.accel.x, data.accel.y, data.accel.z,
+  //                   &pitch, &roll, &yaw, delta_t);
   Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
   if (yaw < 0) {
@@ -52,21 +52,21 @@ void read_and_processIMU_data() {
   }
 
   samples++;
-  if (samples >= 5) {
+  if (samples >= 200) {
     samples = 0;
-    Serial.printf("ax:%.4f", data.accel.x);
-    Serial.printf(",ay:%.4f", data.accel.y);
-    Serial.printf(",az:%.4f", data.accel.z);
-    Serial.printf(", gx:%.4f", data.gyro.x);
-    Serial.printf(",gy:%.4f", data.gyro.y);
-    Serial.printf(",gz:%.4f", data.gyro.z);
-    Serial.printf(", mx:%.4f", data.mag.x);
-    Serial.printf(",my:%.4f", data.mag.y);
-    Serial.printf(",mz:%.4f", data.mag.z);
-    Serial.printf(", head:%.4f", getCompassDegree(data));
+    Serial.printf("head:%.4f", getCompassDegree(data));
     Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
+    Serial.printf(",ax:%.4f", data.accel.x);
+    Serial.printf(",ay:%.4f", data.accel.y);
+    Serial.printf(",az:%.4f", data.accel.z);
+    //Serial.printf(",gx:%.4f", data.gyro.x);
+    //Serial.printf(",gy:%.4f", data.gyro.y);
+    //Serial.printf(",gz:%.4f", data.gyro.z);
+    Serial.printf(",mx:%.4f", data.mag.x);
+    Serial.printf(",my:%.4f", data.mag.y);
+    Serial.printf(",mz:%.4f", data.mag.z);
     Serial.println();
   }
 }
@@ -87,10 +87,12 @@ void repeatMe() {
   }
 }
 
+unsigned long last_calib_save = 0UL;
+
 void setup() {
   auto cfg = M5.config();
   AtomS3.begin(cfg);
-  Serial.begin(115200);
+  Serial.begin(38400);
 
   auto imu_type = M5.Imu.getType();
   switch (imu_type) {
@@ -112,15 +114,25 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 2.0f);
+  float twoKp = (2.0f * 8.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
-  //M5.Imu.setCalibration(50, 50, 200);
+  if (!M5.Imu.loadOffsetFromNVS()) {
+    //startCalibration();
+  }
+  M5.Imu.setCalibration(0, 0, 100);
 }
 
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(100000);
+  delayMicroseconds(4000);
+  unsigned long now_ms = millis();
+  if (now_ms - last_calib_save > 60000) {
+    if (last_calib_save > 0) {
+      M5.Imu.saveOffsetToNVS();
+    }
+    last_calib_save = now_ms;    
+  }
 }
