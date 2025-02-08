@@ -15,6 +15,7 @@ int samples = 0;
 
 float getCompassDegree(m5::IMU_Class::imu_data_t data) {
   float compass = atan2f(data.mag.x, data.mag.y);
+  compass -= M_PI/2;
   if (compass < 0) {
     compass += 2 * M_PI;
   }
@@ -34,7 +35,7 @@ void read_and_processIMU_data() {
   last_update = now;
 
   float pitch = .0f, roll = .0f, yaw = .0f;
-  Quaternion quaternion;
+  //Quaternion quaternion;
 
   mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
                          data.accel.x, data.accel.y, data.accel.z, data.mag.x, data.mag.y, data.mag.z,
@@ -42,7 +43,7 @@ void read_and_processIMU_data() {
   //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
   //                   data.accel.x, data.accel.y, data.accel.z,
   //                   &pitch, &roll, &yaw, delta_t);
-  Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
+  //Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
   if (yaw < 0) {
     yaw += 360.0;
@@ -52,7 +53,7 @@ void read_and_processIMU_data() {
   }
 
   samples++;
-  if (samples >= 200) {
+  if (samples >= 100) {
     samples = 0;
     Serial.printf("head:%.4f", getCompassDegree(data));
     Serial.printf(",yaw:%.4f", yaw);
@@ -114,7 +115,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 8.0f);
+  float twoKp = (2.0f * 2.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
