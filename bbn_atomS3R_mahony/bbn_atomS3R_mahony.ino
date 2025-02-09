@@ -15,12 +15,12 @@ int samples = 0;
 
 float getCompassDegree(m5::IMU_Class::imu_data_t data) {
   float compass = atan2f(data.mag.x, data.mag.y);
-  compass -= M_PI/2;
+  compass -= M_PI / 2;
   if (compass < 0) {
     compass += 2 * M_PI;
   }
   if (compass > 2 * M_PI) {
-     compass -= 2 * M_PI;
+    compass -= 2 * M_PI;
   }
   return compass * 180 / M_PI;
 }
@@ -28,7 +28,7 @@ float getCompassDegree(m5::IMU_Class::imu_data_t data) {
 void read_and_processIMU_data() {
 
   m5::IMU_Class::imu_data_t data;
-  M5.Imu.getImuData(&data); 
+  M5.Imu.getImuData(&data);
 
   now = micros();
   float delta_t = (now - last_update) / 1000000.0;  // time step sec
@@ -90,6 +90,17 @@ void repeatMe() {
 
 unsigned long last_calib_save = 0UL;
 
+void printCalib() {
+  size_t index = 0;
+  Serial.println("Calibration data:");
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j, ++index) {
+      Serial.printf("%.4d ", M5.Imu.getOffsetData(index));
+    }
+    Serial.println();
+  }
+}
+
 void setup() {
   auto cfg = M5.config();
   AtomS3.begin(cfg);
@@ -122,6 +133,9 @@ void setup() {
   if (!M5.Imu.loadOffsetFromNVS()) {
     //startCalibration();
   }
+  else {
+    printCalib();
+  }
   //M5.Imu.setCalibration(0, 0, 32);
 }
 
@@ -134,6 +148,6 @@ void loop() {
     if (last_calib_save > 0) {
       //M5.Imu.saveOffsetToNVS();
     }
-    last_calib_save = now_ms;    
+    last_calib_save = now_ms;
   }
 }
