@@ -24,7 +24,7 @@ void read_and_processIMU_data() {
   M5.Imu.getMag(&mag.x, &mag.y, &mag.z);
 
   samples++;
-  if (samples >= 4) {
+  if (samples >= 2) {
     samples = 0;
 
     // Send raw sensor data to the MotionCal GUI
