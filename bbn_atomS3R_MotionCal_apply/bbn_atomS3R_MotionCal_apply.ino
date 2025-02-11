@@ -1,0 +1,164 @@
+#include <M5AtomS3.h>
+#include <M5Unified.h>
+#include <Arduino.h>
+
+#include "Mahony_AHRS.h"
+
+Mahony_AHRS_Vars mahony;
+
+const char* imu_name;
+
+unsigned long last_update = 0UL, now = 0UL;
+
+int samples = 0;
+
+// Offsets applied to x/y/z mag values
+float mag_offsets[3]            = { 5.68F, 5.40F, -3.98F };
+
+// Soft iron error compensation matrix
+float mag_softiron_matrix[3][3] = { {  0.969,  0.010,  0.024 },
+  {  0.010,  0.952,  0.012 },
+  {  0.024,  0.012,  1.085 }
+};
+
+float mag_field_strength        = 41.56F;
+
+// Fit error 3.4%
+
+// when compass is placed flat
+float getCompassDegree(m5::IMU_Class::imu_data_t data) {
+  float compass = atan2f(data.mag.x, data.mag.y);
+  compass -= M_PI / 2;
+  if (compass < 0) {
+    compass += 2 * M_PI;
+  }
+  if (compass > 2 * M_PI) {
+    compass -= 2 * M_PI;
+  }
+  return compass * 180 / M_PI;
+}
+
+void read_and_processIMU_data() {
+
+  m5::IMU_Class::imu_data_t data;
+  M5.Imu.getImuData(&data);
+
+  now = micros();
+  float delta_t = (now - last_update) / 1000000.0;  // time step sec
+  last_update = now;
+
+  float pitch = .0f, roll = .0f, yaw = .0f;
+
+  // Apply mag offset compensation (base values in uTesla)
+  float x = data.mag.x - mag_offsets[0];
+  float y = data.mag.y - mag_offsets[1];
+  float z = data.mag.z - mag_offsets[2];
+
+  // Apply mag soft iron error compensation
+  float mx = x * mag_softiron_matrix[0][0] + y * mag_softiron_matrix[0][1] + z * mag_softiron_matrix[0][2];
+  float my = x * mag_softiron_matrix[1][0] + y * mag_softiron_matrix[1][1] + z * mag_softiron_matrix[1][2];
+  float mz = x * mag_softiron_matrix[2][0] + y * mag_softiron_matrix[2][1] + z * mag_softiron_matrix[2][2];
+
+  mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+                         data.accel.x, data.accel.y, data.accel.z, mx, my, mz,
+                         &pitch, &roll, &yaw, delta_t);
+  //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
+  //                   data.accel.x, data.accel.y, data.accel.z,
+  //                   &pitch, &roll, &yaw, delta_t);
+
+  if (yaw < 0) {
+    yaw += 360.0;
+  }
+  else if (yaw >= 360) {
+    yaw -= 360.0;
+  }
+
+  samples++;
+  if (samples >= 100) {
+    samples = 0;
+    Serial.printf("head:%.4f", getCompassDegree(data));
+    Serial.printf(",yaw:%.4f", yaw);
+    Serial.printf(",roll:%.4f", roll);
+    Serial.printf(",pitch:%.4f", pitch);
+    Serial.printf(",ax:%.4f", data.accel.x);
+    Serial.printf(",ay:%.4f", data.accel.y);
+    Serial.printf(",az:%.4f", data.accel.z);
+    //Serial.printf(",gx:%.4f", data.gyro.x);
+    //Serial.printf(",gy:%.4f", data.gyro.y);
+    //Serial.printf(",gz:%.4f", data.gyro.z);
+    Serial.printf(",mx:%.4f", data.mag.x);
+    Serial.printf(",my:%.4f", data.mag.y);
+    Serial.printf(",mz:%.4f", data.mag.z);
+    Serial.println();
+  }
+}
+
+void repeatMe() {
+  static uint32_t prev_sec = 0;
+  auto imu_update = M5.Imu.update();
+  if (imu_update) {
+    read_and_processIMU_data();
+  }
+  int32_t sec = millis() / 1000;
+  if (prev_sec != sec) {
+    prev_sec = sec;
+    if ((sec & 7) == 0) {
+      // prevent WDT.
+      vTaskDelay(1);
+    }
+  }
+}
+
+void printCalib() {
+  size_t index = 0;
+  Serial.println("Calibration data:");
+  for (size_t i = 0; i < 3; ++i) {
+    for (size_t j = 0; j < 3; ++j, ++index) {
+      Serial.printf("%.4d ", M5.Imu.getOffsetData(index));
+    }
+    Serial.println();
+  }
+}
+
+void setup() {
+  auto cfg = M5.config();
+  AtomS3.begin(cfg);
+  Serial.begin(38400);
+
+  auto imu_type = M5.Imu.getType();
+  switch (imu_type) {
+    case m5::imu_none:        imu_name = "not found";   break;
+    case m5::imu_sh200q:      imu_name = "sh200q";      break;
+    case m5::imu_mpu6050:     imu_name = "mpu6050";     break;
+    case m5::imu_mpu6886:     imu_name = "mpu6886";     break;
+    case m5::imu_mpu9250:     imu_name = "mpu9250";     break;
+    case m5::imu_bmi270:      imu_name = "bmi270";      break;
+    default:                  imu_name = "unknown";     break;
+  };
+
+  if (imu_type == m5::imu_none) {
+    Serial.println("Imu not found!");
+    for (;;) {
+      delay(1);
+    }
+  }
+  Serial.println(imu_name);
+  last_update = micros();
+
+  float twoKp = (2.0f * 2.0f);
+  float twoKi = (2.0f * 0.0001f);
+  mahony_AHRS_init(&mahony, twoKp, twoKi);
+
+  if (!M5.Imu.loadOffsetFromNVS()) {
+    //startCalibration();
+  }
+  else {
+    printCalib();
+  }
+}
+
+void loop() {
+  AtomS3.update();
+  repeatMe();
+  delayMicroseconds(4000);
+}
