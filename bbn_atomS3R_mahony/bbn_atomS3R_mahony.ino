@@ -88,8 +88,6 @@ void repeatMe() {
   }
 }
 
-unsigned long last_calib_save = 0UL;
-
 void printCalib() {
   size_t index = 0;
   Serial.println("Calibration data:");
@@ -126,7 +124,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 50.0f);
+  float twoKp = (2.0f * 2.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
@@ -136,18 +134,10 @@ void setup() {
   else {
     printCalib();
   }
-  //M5.Imu.setCalibration(0, 0, 32);
 }
 
 void loop() {
   AtomS3.update();
   repeatMe();
   delayMicroseconds(4000);
-  unsigned long now_ms = millis();
-  if (now_ms - last_calib_save > 60000) {
-    if (last_calib_save > 0) {
-      //M5.Imu.saveOffsetToNVS();
-    }
-    last_calib_save = now_ms;
-  }
 }
