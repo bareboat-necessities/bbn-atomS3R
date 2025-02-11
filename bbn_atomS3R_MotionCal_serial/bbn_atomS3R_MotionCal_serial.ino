@@ -24,7 +24,7 @@ void read_and_processIMU_data() {
   M5.Imu.getMag(&mag.x, &mag.y, &mag.z);
 
   samples++;
-  if (samples >= 1) {
+  if (samples >= 4) {
     samples = 0;
 
     // Send raw sensor data to the MotionCal GUI
@@ -61,8 +61,6 @@ void repeatMe() {
 void setup() {
   auto cfg = M5.config();
   AtomS3.begin(cfg);
-  //USB.begin();
-  Serial.begin();
   Serial.begin(115200);
 
   auto imu_type = M5.Imu.getType();
@@ -96,6 +94,6 @@ void loop() {
   }
   else {
     repeatMe();
-    delayMicroseconds(50000);
+    delayMicroseconds(25000);
   }
 }
