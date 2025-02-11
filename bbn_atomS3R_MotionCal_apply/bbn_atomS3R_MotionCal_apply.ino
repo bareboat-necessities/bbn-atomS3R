@@ -16,28 +16,45 @@ int samples = 0;
 float mag_offsets[3]            = { 5.68F, 5.40F, -3.98F };
 
 // Soft iron error compensation matrix
-float mag_softiron_matrix[3][3] = 
+float mag_softiron_matrix[3][3] =
 { {  0.969,  0.010,  0.024 },
   {  0.010,  0.952,  0.012 },
-  {  0.024,  0.012,  1.085 } };
+  {  0.024,  0.012,  1.085 }
+};
 
 float mag_field_strength        = 41.56F;
 
 // Fit error 3.4%
 
-// when compass is placed flat
-float getCompassDegree(float mx, float my) {
-  float compass = atan2f(mx, my);
-  compass -= M_PI / 2;
-  if (compass < 0) {
-    compass += 2 * M_PI;
-  }
-  if (compass > 2 * M_PI) {
-    compass -= 2 * M_PI;
-  }
-  return compass * 180 / M_PI;
-}
+// Function to calculate the tilt-compensated compass heading in degrees
+float calculate_heading(float mx, float my, float mz, float ax, float ay, float az) {
+  float heading;
+  float pitch, roll;
 
+  // Calculate pitch (rotation around y-axis) in radians
+  pitch = atan2(-ax, sqrt(ay * ay + az * az));
+
+  // Calculate roll (rotation around x-axis) in radians
+  roll = atan2(ay, az);
+
+  // Tilt compensation: adjust magnetometer readings for pitch and roll
+  float xh = mx * cos(pitch) + mz * sin(pitch);
+  float yh = mx * sin(roll) * sin(pitch) + my * cos(roll) - mz * sin(roll) * cos(pitch);
+  float zh = -mx * cos(roll) * sin(pitch) + my * sin(roll) + mz * cos(roll) * cos(pitch);
+
+  // Calculate the heading in radians using the tilt-compensated x and y components
+  heading = atan2(yh, xh);
+
+  // Convert radians to degrees
+  heading = heading * 180 / PI;
+
+  // Normalize the heading to a range of 0 to 360 degrees
+  if (heading < 0) {
+    heading += 360;
+  }
+
+  return heading;
+}
 void read_and_processIMU_data() {
 
   m5::IMU_Class::imu_data_t data;
@@ -60,12 +77,13 @@ void read_and_processIMU_data() {
   float mz = x * mag_softiron_matrix[2][0] + y * mag_softiron_matrix[2][1] + z * mag_softiron_matrix[2][2];
 
   mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
-                         data.accel.x, data.accel.y, data.accel.z, mx, my, mz,
+                         data.accel.x, data.accel.y, data.accel.z, mx, -my, mz,
                          &pitch, &roll, &yaw, delta_t);
   //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
   //                   data.accel.x, data.accel.y, data.accel.z,
   //                   &pitch, &roll, &yaw, delta_t);
 
+  yaw += 270;
   if (yaw < 0) {
     yaw += 360.0;
   }
@@ -76,7 +94,7 @@ void read_and_processIMU_data() {
   samples++;
   if (samples >= 100) {
     samples = 0;
-    Serial.printf("head:%.4f", getCompassDegree(mx, my));
+    Serial.printf("head:%.4f", calculate_heading(mx, my, mz, data.accel.x, data.accel.y, data.accel.z));
     Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
@@ -145,7 +163,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 10.0f);
+  float twoKp = (2.0f * 50.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
