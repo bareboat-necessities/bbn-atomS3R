@@ -1,9 +1,8 @@
 # bbn-atomS3R
 BBN m5stack atomS3R
 
-There are serious doubts about magnetometer quality in atomS3R.
+Magnetometer calbration with m5unified library is not enough. It only estimates offset biases.
 
-I've tried putting the device flat and still into exact same position and it gave different averaged readings 
-from magnetometer x, y at different times.
+Proper calibration would include measuring scalte biases as well.
 
-
+There are better tools to calibrate. Check: https://github.com/bareboat-necessities/bbn-MotionCal
