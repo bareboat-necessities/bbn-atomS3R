@@ -91,7 +91,7 @@ void read_and_processIMU_data() {
   }
 
   samples++;
-  if (samples >= 100) {
+  if (samples >= 10) {
     samples = 0;
     Serial.printf("head:%.4f", calculate_heading(mx, my, mz, data.accel.x, data.accel.y, data.accel.z));
     Serial.printf(",yaw:%.4f", yaw);
@@ -140,7 +140,7 @@ void printCalib() {
 void setup() {
   auto cfg = M5.config();
   AtomS3.begin(cfg);
-  Serial.begin(38400);
+  Serial.begin(115200);
 
   auto imu_type = M5.Imu.getType();
   switch (imu_type) {
@@ -162,7 +162,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 50.0f);
+  float twoKp = (2.0f * 8.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
@@ -177,5 +177,5 @@ void setup() {
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(4000);
+  delayMicroseconds(25000);
 }
