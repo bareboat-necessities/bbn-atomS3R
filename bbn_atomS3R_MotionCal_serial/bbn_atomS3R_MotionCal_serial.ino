@@ -95,7 +95,7 @@ void loop() {
     Serial.flush();
   }
   else {
-    //repeatMe();
+    repeatMe();
     delayMicroseconds(50000);
   }
 }
