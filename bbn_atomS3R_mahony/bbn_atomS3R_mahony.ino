@@ -13,17 +13,33 @@ unsigned long last_update = 0UL, now = 0UL;
 
 int samples = 0;
 
-// when compass is placed flat
-float getCompassDegree(m5::IMU_Class::imu_data_t data) {
-  float compass = atan2f(data.mag.x, data.mag.y);
-  compass -= M_PI / 2;
-  if (compass < 0) {
-    compass += 2 * M_PI;
+// Function to calculate the tilt-compensated compass heading in degrees
+float calculate_heading(float mx, float my, float mz, float ax, float ay, float az) {
+  float heading;
+  float pitch, roll;
+
+  // Calculate pitch (rotation around y-axis) in radians
+  pitch = atan2(-ax, sqrt(ay * ay + az * az));
+
+  // Calculate roll (rotation around x-axis) in radians
+  roll = atan2(ay, az);
+
+  // Tilt compensation: adjust magnetometer readings for pitch and roll
+  float xh = mx * cos(pitch) + mz * sin(pitch);
+  float yh = mx * sin(roll) * sin(pitch) + my * cos(roll) - mz * sin(roll) * cos(pitch);
+  float zh = -mx * cos(roll) * sin(pitch) + my * sin(roll) + mz * cos(roll) * cos(pitch);
+
+  // Calculate the heading in radians using the tilt-compensated x and y components
+  heading = atan2(yh, xh);
+
+  // Convert radians to degrees
+  heading = heading * 180 / PI;
+
+  // Normalize the heading to a range of 0 to 360 degrees
+  if (heading < 0) {
+    heading += 360;
   }
-  if (compass > 2 * M_PI) {
-    compass -= 2 * M_PI;
-  }
-  return compass * 180 / M_PI;
+  return heading;
 }
 
 void read_and_processIMU_data() {
@@ -47,16 +63,16 @@ void read_and_processIMU_data() {
   //Quaternion_set(mahony.q0, mahony.q1, mahony.q2, mahony.q3, &quaternion);
 
   if (yaw < 0) {
-    yaw += 360.0;
+    yaw = -yaw;
   }
-  else if (yaw >= 360) {
-    yaw -= 360.0;
+  else {
+    yaw = 360.0 - yaw;
   }
 
   samples++;
-  if (samples >= 100) {
+  if (samples >= 10) {
     samples = 0;
-    Serial.printf("head:%.4f", getCompassDegree(data));
+    Serial.printf("head:%.4f", calculate_heading(mx, my, mz, data.accel.x, data.accel.y, data.accel.z));
     Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
@@ -125,7 +141,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 2.0f);
+  float twoKp = (2.0f * 8.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
@@ -140,5 +156,5 @@ void setup() {
 void loop() {
   AtomS3.update();
   repeatMe();
-  delayMicroseconds(4000);
+  delayMicroseconds(25000);
 }
