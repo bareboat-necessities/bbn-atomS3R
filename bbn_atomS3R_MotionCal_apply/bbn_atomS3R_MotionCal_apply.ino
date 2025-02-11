@@ -16,10 +16,10 @@ int samples = 0;
 float mag_offsets[3]            = { 5.68F, 5.40F, -3.98F };
 
 // Soft iron error compensation matrix
-float mag_softiron_matrix[3][3] = { {  0.969,  0.010,  0.024 },
+float mag_softiron_matrix[3][3] = 
+{ {  0.969,  0.010,  0.024 },
   {  0.010,  0.952,  0.012 },
-  {  0.024,  0.012,  1.085 }
-};
+  {  0.024,  0.012,  1.085 } };
 
 float mag_field_strength        = 41.56F;
 
