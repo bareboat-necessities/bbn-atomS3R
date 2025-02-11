@@ -1,7 +1,7 @@
 # bbn-atomS3R
 BBN m5stack atomS3R
 
-Magnetometer calbration with m5unified library is not enough. It only estimates offset biases.
+Magnetometer calibration with m5unified library is not enough. It only estimates offset biases.
 
 Proper calibration would include measuring scalte biases as well.
 
