@@ -72,7 +72,8 @@ void read_and_processIMU_data() {
   samples++;
   if (samples >= 10) {
     samples = 0;
-    Serial.printf("head:%.4f", calculate_heading(mx, my, mz, data.accel.x, data.accel.y, data.accel.z));
+    Serial.printf("head:%.4f", calculate_heading(data.mag.x, data.mag.y, data.mag.z, 
+                                                 data.accel.x, data.accel.y, data.accel.z));
     Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
