@@ -14,7 +14,6 @@ unsigned long last_update = 0UL, now = 0UL;
 int samples = 0;
 
 void read_and_processIMU_data() {
-  /*
   m5::imu_3d_t accel;
   M5.Imu.getAccel(&accel.x, &accel.y, &accel.z);
 
@@ -23,7 +22,6 @@ void read_and_processIMU_data() {
 
   m5::imu_3d_t mag;
   M5.Imu.getMag(&mag.x, &mag.y, &mag.z);
-  */
 
   samples++;
   if (samples >= 1) {
@@ -92,12 +90,12 @@ void setup() {
 void loop() {
   AtomS3.update();
   if (Serial.available()) {
-    String data = Serial.readString();
-    Serial.print("Received: ");
-    Serial.println(data);
+    char data = Serial.read();
+    Serial.print(data);
+    Serial.flush();
   }
   else {
-    repeatMe();
+    //repeatMe();
     delayMicroseconds(50000);
   }
 }
