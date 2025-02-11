@@ -88,8 +88,10 @@ void setup() {
 void loop() {
   AtomS3.update();
   if (Serial.available()) {
-    char data = Serial.read();
-    Serial.print(data);
+    while (Serial.available()) {
+      char data = Serial.read();
+      Serial.print(data);
+    }
     Serial.flush();
   }
   else {
