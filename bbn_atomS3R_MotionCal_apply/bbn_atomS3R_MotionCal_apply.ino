@@ -52,9 +52,9 @@ float calculate_heading(float mx, float my, float mz, float ax, float ay, float 
   if (heading < 0) {
     heading += 360;
   }
-
   return heading;
 }
+
 void read_and_processIMU_data() {
 
   m5::IMU_Class::imu_data_t data;
@@ -77,18 +77,17 @@ void read_and_processIMU_data() {
   float mz = x * mag_softiron_matrix[2][0] + y * mag_softiron_matrix[2][1] + z * mag_softiron_matrix[2][2];
 
   mahony_AHRS_update_mag(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
-                         data.accel.x, data.accel.y, data.accel.z, mx, -my, mz,
+                         data.accel.x, data.accel.y, data.accel.z, mx, my, mz,
                          &pitch, &roll, &yaw, delta_t);
   //mahony_AHRS_update(&mahony, data.gyro.x * DEG_TO_RAD, data.gyro.y * DEG_TO_RAD, data.gyro.z * DEG_TO_RAD,
   //                   data.accel.x, data.accel.y, data.accel.z,
   //                   &pitch, &roll, &yaw, delta_t);
 
-  yaw += 270;
   if (yaw < 0) {
-    yaw += 360.0;
+    yaw = -yaw;
   }
-  else if (yaw >= 360) {
-    yaw -= 360.0;
+  else {
+    yaw = 360.0 - yaw;
   }
 
   samples++;
