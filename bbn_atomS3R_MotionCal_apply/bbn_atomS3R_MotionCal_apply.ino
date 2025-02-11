@@ -26,8 +26,8 @@ float mag_field_strength        = 41.56F;
 // Fit error 3.4%
 
 // when compass is placed flat
-float getCompassDegree(m5::IMU_Class::imu_data_t data) {
-  float compass = atan2f(data.mag.x, data.mag.y);
+float getCompassDegree(float mx, float my) {
+  float compass = atan2f(mx, my);
   compass -= M_PI / 2;
   if (compass < 0) {
     compass += 2 * M_PI;
@@ -50,9 +50,9 @@ void read_and_processIMU_data() {
   float pitch = .0f, roll = .0f, yaw = .0f;
 
   // Apply mag offset compensation (base values in uTesla)
-  float x = data.mag.x - mag_offsets[0];
-  float y = data.mag.y - mag_offsets[1];
-  float z = data.mag.z - mag_offsets[2];
+  float x = data.mag.x - mag_offsets[0] * 10;
+  float y = data.mag.y - mag_offsets[1] * 10;
+  float z = data.mag.z - mag_offsets[2] * 10;
 
   // Apply mag soft iron error compensation
   float mx = x * mag_softiron_matrix[0][0] + y * mag_softiron_matrix[0][1] + z * mag_softiron_matrix[0][2];
@@ -76,7 +76,7 @@ void read_and_processIMU_data() {
   samples++;
   if (samples >= 100) {
     samples = 0;
-    Serial.printf("head:%.4f", getCompassDegree(data));
+    Serial.printf("head:%.4f", getCompassDegree(mx, my));
     Serial.printf(",yaw:%.4f", yaw);
     Serial.printf(",roll:%.4f", roll);
     Serial.printf(",pitch:%.4f", pitch);
@@ -145,7 +145,7 @@ void setup() {
   Serial.println(imu_name);
   last_update = micros();
 
-  float twoKp = (2.0f * 2.0f);
+  float twoKp = (2.0f * 10.0f);
   float twoKi = (2.0f * 0.0001f);
   mahony_AHRS_init(&mahony, twoKp, twoKi);
 
