@@ -13,6 +13,7 @@ unsigned long last_update = 0UL, now = 0UL;
 
 int samples = 0;
 
+// when compass is placed flat
 float getCompassDegree(m5::IMU_Class::imu_data_t data) {
   float compass = atan2f(data.mag.x, data.mag.y);
   compass -= M_PI / 2;
