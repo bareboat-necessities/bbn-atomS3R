@@ -13,6 +13,8 @@ unsigned long last_update = 0UL, now = 0UL;
 
 int samples = 0;
 
+bool useRaw = false;
+
 void read_and_processIMU_data() {
   m5::imu_3d_t accel;
   M5.Imu.getAccel(&accel.x, &accel.y, &accel.z);
@@ -30,9 +32,23 @@ void read_and_processIMU_data() {
     // Send raw sensor data to the MotionCal GUI
     // Format: "Raw:<accel_x>,<accel_y>,<accel_z>,<gyro_x>,<gyro_y>,<gyro_z>,<mag_x>,<mag_y>,<mag_z>"
     Serial.print("Raw:");
-    for (int i = 0; i < 9; i++) {
-      Serial.print(M5.Imu.getRawData(i));
-      if (i < 8) Serial.print(",");
+    if (useRaw) {
+      for (int i = 0; i < 9; i++) {
+        Serial.print(M5.Imu.getRawData(i));
+        if (i < 8) Serial.print(",");
+      }
+    } 
+    else {
+      // 'Raw' values to match expectation of MotionCal
+      Serial.print(int(accel.x * 4096)); Serial.print(",");
+      Serial.print(int(accel.y * 4096)); Serial.print(",");
+      Serial.print(int(accel.z * 4096)); Serial.print(",");
+      Serial.print(int(gyro.x * 16)); Serial.print(",");
+      Serial.print(int(gyro.y * 16)); Serial.print(",");
+      Serial.print(int(gyro.z * 16)); Serial.print(",");
+      Serial.print(int(mag.x)); Serial.print(",");
+      Serial.print(int(mag.y)); Serial.print(",");
+      Serial.print(int(mag.z)); 
     }
     Serial.println();
   }
