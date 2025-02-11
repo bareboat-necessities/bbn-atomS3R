@@ -97,7 +97,7 @@ void loop() {
     Serial.println(data);
   }
   else {
-    //repeatMe();
+    repeatMe();
     delayMicroseconds(50000);
   }
 }
