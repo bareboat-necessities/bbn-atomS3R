@@ -1,4 +1,3 @@
-#include <M5AtomS3.h>
 #include <M5Unified.h>
 #include <Arduino.h>
 
@@ -76,7 +75,7 @@ void repeatMe() {
 
 void setup() {
   auto cfg = M5.config();
-  AtomS3.begin(cfg);
+  M5.begin(cfg);
   Serial.begin(115200);
 
   auto imu_type = M5.Imu.getType();
@@ -102,7 +101,7 @@ void setup() {
 }
 
 void loop() {
-  AtomS3.update();
+  M5.update();
   if (Serial.available()) {
     while (Serial.available()) {
       char data = Serial.read();
